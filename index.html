@@ -42,7 +42,7 @@ header .sub{font-size:10px;color:var(--sand);margin-top:1px}
 .toast-item .t-body{font-size:10.5px;color:rgba(255,255,255,.85);font-weight:400}
 
 /* ── 2-COLUMN LAYOUT ── */
-.layout{display:grid;grid-template-columns:5fr 2.2fr 2.2fr;gap:10px;padding:10px 14px;width:100%;height:100%;min-height:0;overflow:hidden;align-items:stretch}
+.layout{display:grid;grid-template-columns:5fr 3fr;gap:10px;padding:10px 14px;width:100%;height:100%;min-height:0;overflow:hidden;align-items:stretch}
 .ft-filter-btn{padding:3px 10px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--sub);font-family:inherit}
 .ft-filter-btn.active{background:var(--fc,var(--navy));color:#fff;border-color:var(--fc,var(--navy))}
 .ft-filter-btn:hover{border-color:var(--fc,var(--navy));color:var(--fc,var(--navy))}
@@ -225,7 +225,7 @@ canvas{display:block;width:100%!important}
 <div class="layout">
 
   <!-- COL 2: 웨이퍼 상세 (오른쪽) -->
-  <div class="card detail-card" style="min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;order:2">
+  <div class="card detail-card" style="min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;order:2;height:100%">
     <div class="ctitle"><span class="dot"></span>웨이퍼 상세</div>
     <div id="detail-empty" class="empty-state">
       <div class="empty-icon">🎯</div>
@@ -255,20 +255,8 @@ canvas{display:block;width:100%!important}
         <div class="mc-head"><span>🔎 어떤 모델이 탐지했는가</span><span id="mc-count"></span></div>
         <div class="mc-chips" id="mc-chips"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- COL 3: 피처 분석 + 결함 대처 -->
-  <div class="card" style="min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;order:3">
-    <div class="ctitle"><span class="dot nv"></span>피처 분석 &amp; 대처</div>
-    <div id="feat-action-empty" class="empty-state">
-      <div class="empty-icon">📊</div>
-      <div class="empty-text">웨이퍼를 선택하면<br>피처 분석이 표시됩니다</div>
-    </div>
-    <div id="feat-action-content" style="display:none;flex:1;overflow-y:auto;flex-direction:column;padding:0 2px">
-      <div class="feat-section-title" style="margin-top:0">📊 이상에 기여한 상위 3개 Feature</div>
-      <div class="feat-list" id="feat-list" style="flex:0 0 auto"></div>
-      <div id="fault-action-section" style="margin-top:10px;border-top:1.5px solid var(--border);padding-top:8px"></div>
+      <div class="feat-section-title">📊 이상에 기여한 상위 3개 Feature</div>
+      <div class="feat-list" id="feat-list"></div>
     </div>
   </div>
 
@@ -1224,17 +1212,8 @@ function renderResultGrid(){
 function renderDetail(w){
   const empty=document.getElementById('detail-empty');
   const content=document.getElementById('detail-content');
-  const faEmpty=document.getElementById('feat-action-empty');
-  const faContent=document.getElementById('feat-action-content');
-  if(!w){
-    empty.style.display='flex';content.style.display='none';
-    if(faEmpty) faEmpty.style.display='flex';
-    if(faContent) faContent.style.display='none';
-    return;
-  }
+  if(!w){empty.style.display='flex';content.style.display='none';return;}
   empty.style.display='none';content.style.display='flex';
-  if(faEmpty) faEmpty.style.display='none';
-  if(faContent) faContent.style.display='flex';
   document.getElementById('d-id').textContent=w.id;
   const chipEl=document.getElementById('d-chip');
   chipEl.className=`chip ${w.label==='Normal'?'chip-n':'chip-f'}`;
@@ -1337,13 +1316,15 @@ function renderDetail(w){
   });
   fl.innerHTML+='</div>';
 
-   // 결함 대처 방법 — 별도 섹션(fault-action-section)에 분리 렌더
-  const actionSection=document.getElementById('fault-action-section');
-  if(actionSection) actionSection.innerHTML='';
+  // 결함 대처 방법 — '기타' 목록 바로 아래(feat-list 안)에 이어서 렌더
   const actions=FAULT_ACTIONS[w.faultType];
-  if(actions && w.faultType && actionSection){
-    actionSection.innerHTML=`<div class="feat-section-title" style="margin-bottom:6px;margin-top:0">🛠 결함 대처 방법</div>
-      <div>${actions.map(([title,desc])=>`<div class="fault-action-item"><b>🔧 ${title}</b>${desc}</div>`).join('')}</div>`;
+  if(actions && w.faultType){
+    fl.innerHTML+=`<div id="fault-action-panel" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
+      <div class="feat-section-title" style="margin-bottom:6px">🛠 결함 대처 방법</div>
+      <div id="fault-action-content" style="font-size:10.5px;color:var(--text);line-height:1.7">${
+        actions.map(([title,desc])=>`<div class="fault-action-item"><b>🔧 ${title}</b>${desc}</div>`).join('')
+      }</div>
+    </div>`;
   }
 }
 
